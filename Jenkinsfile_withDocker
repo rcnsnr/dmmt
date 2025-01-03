@@ -13,20 +13,18 @@ pipeline {
     }
 
     stages {
-        stage('Setup Python Environment') {
+        stage('Build Docker Image') {
             steps {
-                sh 'python3 -m venv venv'
-                sh './venv/bin/pip install -r requirements.txt'
+                sh 'docker build -t disk-monitoring-tool .'
             }
         }
-        stage('Run Monitoring Script') {
+        stage('Run Monitoring') {
             steps {
                 sh '''
-                source venv/bin/activate
-                python main.py --threshold ${THRESHOLD} \
-                               --log_retention_days ${LOG_RETENTION_DAYS} \
-                               --scan_path ${SCAN_PATH} \
-                               --check_zombies ${CHECK_ZOMBIES}
+                docker run --rm -e THRESHOLD=${THRESHOLD} \
+                -e LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS} \
+                -e SCAN_PATH=${SCAN_PATH} \
+                disk-monitoring-tool
                 '''
             }
         }

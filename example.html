@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disk Monitoring Report</title>
+</head>
+<body>
+    <h1>Disk Usage Monitoring Report</h1>
+    <p><strong>Timestamp:</strong> 2025-01-03 14:30:00 UTC</p>
+    <p><strong>Monitored Path:</strong> /var/log</p>
+    <p><strong>Disk Usage:</strong> 92.5%</p>
+    <p><strong>Threshold:</strong> 85%</p>
+    <p><strong>Status:</strong> <span style="color: red;">ALERT</span></p>
+    
+    <h2>Actions Taken:</h2>
+    <ul>
+        <li>Sent Microsoft Teams alert</li>
+        <li>Sent email notification</li>
+        <li>No files deleted (LVM expansion disabled)</li>
+    </ul>
+
+    <h2>Details:</h2>
+    <ul>
+        <li>Total Disk Space: 500 GB</li>
+        <li>Used Space: 462 GB</li>
+        <li>Free Space: 38 GB</li>
+        <li>Log Files Deleted: None</li>
+        <li>Zombie Processes Found: 2</li>
+        <li>Zombie Processes Cleaned: 2</li>
+    </ul>
+</body>
+</html>
