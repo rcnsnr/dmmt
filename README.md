@@ -1,6 +1,6 @@
 # Disk Monitoring and System Maintenance Tool
 
-This project is a comprehensive **disk usage and process monitoring tool** designed to track disk utilization, identify large files, manage log rotation, and detect zombie processes. It integrates seamlessly with Jenkins pipelines for scheduled checks and generates alerts via Microsoft Teams. The tool is designed to work across various environments, including:
+This project is a comprehensive **disk monitoring and system maintenance tool** designed to track disk utilization, identify large files, manage log rotation, and detect zombie processes. It integrates seamlessly with Jenkins pipelines for scheduled checks and generates alerts via Microsoft Teams. The tool is designed to work across various environments, including:
 
 - **Oracle Enterprise Linux**  
 - **Oracle DB, MongoDB, Cassandra, Redis, Kafka**  
@@ -9,6 +9,17 @@ This project is a comprehensive **disk usage and process monitoring tool** desig
 - **Application servers running Java and other test environments**  
 
 ---
+
+## Project Structure
+
+```
+/.
+│
+├── disk_check.py          # Main Python script for disk and process monitoring
+├── Jenkinsfile            # Jenkins pipeline for automation
+└── requirements.txt       # Python dependencies
+
+```
 
 ## Features
 
@@ -56,6 +67,30 @@ This project is a comprehensive **disk usage and process monitoring tool** desig
 
 ---
 
+### 6. Application and Filesystem-Specific Actions
+
+- **Oracle DB (on ext4 or XFS):**
+
+  - Cleans up Oracle database logs and archive files automatically.  
+  - Detects database dump files and moves them to archival storage.  
+
+- **MongoDB, Cassandra, Redis:**
+
+  - Scans `/var/lib` directories for large `.wt` or `.sst` files.  
+  - Performs automatic compaction or backup on large files.  
+
+- **LVM Management:**
+
+  - Expands logical volumes (`lvextend`) when disk usage reaches a certain threshold.  
+  - Automatically detects volume groups and resizes them as needed.  
+
+- **ZFS and XFS Filesystems:**
+
+  - Detects and triggers snapshot-based cleanup or archival processes.  
+  - Runs `xfs_growfs` or `zfs list` commands to manage disk health.  
+
+---
+
 ## Technology Stack
 
 - **Language:** Python 3.9+  
@@ -79,8 +114,79 @@ This project is a comprehensive **disk usage and process monitoring tool** desig
 
 ### Setup
 
-1. Clone the repository:
+1. Clone the repository
 
-   ```bash
-   git clone https://github.com/yourusername/disk-monitoring-tool.git
-   cd disk-monitoring-tool
+2. Install dependencies:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+3. Set up Microsoft Teams Webhook URL in ```disk_check.py```:
+
+```python
+TEAMS_WEBHOOK_URL = "https://outlook.office.com/webhook/YOUR-WEBHOOK-URL"
+```
+
+### Usage
+
+#### Run Manually
+
+```bash
+python3 disk_check.py --threshold 85 --log_retention_days 30 --scan_path /var/log --check_zombies true
+```
+
+##### Run via Jenkins Pipeline
+
+```groovy
+pipeline {
+    agent any
+
+    environment {
+        PYTHON_VERSION = '3.9'
+    }
+
+    parameters {
+        string(name: 'THRESHOLD', defaultValue: '85', description: 'Disk usage threshold')
+        string(name: 'LOG_RETENTION_DAYS', defaultValue: '30', description: 'Log retention period (days)')
+        string(name: 'SCAN_PATH', defaultValue: '/', description: 'Directory to scan')
+        booleanParam(name: 'CHECK_ZOMBIES', defaultValue: true, description: 'Enable zombie process detection')
+    }
+
+    stages {
+        stage('Disk and Process Monitoring') {
+            steps {
+                sh """
+                source venv/bin/activate
+                python disk_check.py --threshold ${THRESHOLD} --log_retention_days ${LOG_RETENTION_DAYS} --scan_path ${SCAN_PATH} --check_zombies ${CHECK_ZOMBIES}
+                """
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+```
+
+### Customization
+
+- Modify the file paths and threshold values in disk_check.py to match your environment.
+
+- Adjust the Jenkins pipeline to fit specific server types (DB servers, app servers, etc.).
+
+- Add exclusion lists for directories or files that should not be scanned.
+
+### Roadmap
+
+- [ ] Add Slack Integration as an alternative to Microsoft Teams.
+
+- [ ] Implement Dynamic Configuration using YAML or JSON for server-specific settings.
+
+- [ ] Multi-threaded Disk Scans for faster large-directory analysis.
+
+- [ ] Dockerization for containerized deployment.
