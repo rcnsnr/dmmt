@@ -145,6 +145,7 @@ TEAMS_WEBHOOK_URL=https://outlook.office.com/webhook/YOUR-WEBHOOK-URL
 ELK_HOST=your-elk-host
 ELK_PORT=9200
 ```
+
 ---
 
 ### Usage
